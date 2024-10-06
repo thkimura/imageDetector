@@ -20,8 +20,8 @@ document.getElementById('uploaldButton').addEventListener('click', async() => {
   reader.readAsDataURL(file)
 
   //Imagga API credencials
-  const apiKey = ''
-  const apiSecret = ''
+  const apiKey = 'acc_92393b18477beee'
+  const apiSecret = '425b7acbb5fd96dd8d0b63e01849f109'
   const authHeader = 'Basic ' + btoa(`${apiKey}:${apiSecret}`)
 
   //Prepare data for upload
@@ -64,7 +64,22 @@ document.getElementById('uploaldButton').addEventListener('click', async() => {
       responseArray.set(chunk)
     }
     const text = new TextDEcoder('utf-8').decode(responseArray)
-    const {result}
-  }
+    const {result: {upload_id} } = JSON.parse(text)
 
+    //Fetch color and tag  analysis from imagga
+
+    const [colorResult, tagsResult] = await Promise.all([
+      fetch(`https://api.imagga.com/v2/colors?image_upload_id=${upload_id}`, { headers: { 'Authorization': authHeader } }).then(res => res.json()),
+      fetch(`https://api.imagga.com/v2/tags?image_upload_id=${upload_id}`, { headers: { 'Authorization': authHeader } }).then(res => res.json())
+    ])
+    //Display the results
+    displayColors(colorResult.result.colors)
+    displayTags(tagsResult.result.tags)
+  } catch(error){
+    console.error('Error', error)
+    showToast('An error occurren while processing the image!')
+  } finally{
+    // Hide the upload modal after processing 
+    uploadModal.style.display = 'none'
+  }
 })
